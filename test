@@ -1,144 +1,102 @@
--- Updated: Draggable GUI + Toggle Switch + AUTO Button (AnotherBox 0.001s) + Instant + Cash
--- LocalScript in StarterPlayerScripts
-
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+local pgui = player:WaitForChild("PlayerGui")
 
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player:WaitForChild("PlayerGui")
-screenGui.ResetOnSpawn = false
+-- Target Panel
+local panel = pgui:WaitForChild("ExtraUI"):WaitForChild("AdminPanel")
+panel.Transparency = 0.1
+panel.Visible = false -- Default OFF
 
--- Main Frame
+-- MAIN GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "MonsyAdminToggle"
+gui.ResetOnSpawn = false
+gui.Parent = pgui
+
+-- MAIN FRAME
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 180)
-frame.Position = UDim2.new(0.5, -110, 0.5, -90)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.Size = UDim2.new(0, 230, 0, 140)
+frame.Position = UDim2.new(0.05, 0, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
 frame.BorderSizePixel = 0
-frame.Parent = screenGui
+frame.Parent = gui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 16)
-corner.Parent = frame
+-- Rounded Corners
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 12)
 
--- Title
+-- Soft outline
+local stroke = Instance.new("UIStroke", frame)
+stroke.Color = Color3.fromRGB(30,30,30)
+stroke.Thickness = 2
+
+-- Drop Shadow effect
+local shadow = Instance.new("ImageLabel", frame)
+shadow.ZIndex = -1
+shadow.AnchorPoint = Vector2.new(0.5,0.5)
+shadow.Position = UDim2.new(0.5,0,0.5,0)
+shadow.Size = UDim2.new(1,20,1,20)
+shadow.Image = "rbxassetid://6015897843"
+shadow.ImageColor3 = Color3.fromRGB(0,0,0)
+shadow.ImageTransparency = 0.4
+shadow.BackgroundTransparency = 1
+
+-- Title Text
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Position = UDim2.new(0, 0, 0, 8)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "MONSY"
 title.BackgroundTransparency = 1
-title.Text = "MONEY"
-title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextSize = 22
 title.Parent = frame
 
--- Money Label
-local moneyLabel = Instance.new("TextLabel")
-moneyLabel.Size = UDim2.new(1, -20, 0, 25)
-moneyLabel.Position = UDim2.new(0, 10, 0, 38)
-moneyLabel.BackgroundTransparency = 1
-moneyLabel.Text = "$0"
-moneyLabel.TextColor3 = Color3.new(0, 1, 0)
-moneyLabel.Font = Enum.Font.Gotham
-moneyLabel.TextSize = 20
-moneyLabel.TextXAlignment = Enum.TextXAlignment.Left
-moneyLabel.Parent = frame
+-- ADMIN BUTTON
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0,180,0,45)
+btn.Position = UDim2.new(0.5, -90, 0.5, -5)
+btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+btn.BorderSizePixel = 0
+btn.Text = "ADMIN: OFF"
+btn.TextColor3 = Color3.fromRGB(255,255,255)
+btn.Font = Enum.Font.GothamSemibold
+btn.TextSize = 19
+btn.Parent = frame
 
--- CASH Button
-local cashButton = Instance.new("TextButton")
-cashButton.Size = UDim2.new(0, 60, 0, 30)
-cashButton.Position = UDim2.new(1, -70, 1, -68)
-cashButton.BackgroundColor3 = Color3.new(0, 0, 0)
-cashButton.BorderSizePixel = 1
-cashButton.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
-cashButton.Text = "CASH"
-cashButton.TextColor3 = Color3.new(1, 1, 1)
-cashButton.Font = Enum.Font.GothamBold
-cashButton.TextSize = 14
-cashButton.Parent = frame
+local btnCorner = Instance.new("UICorner", btn)
+btnCorner.CornerRadius = UDim.new(0, 10)
 
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 8)
-btnCorner.Parent = cashButton
+-- Button highlight hover effect
+btn.MouseEnter:Connect(function()
+	btn.BackgroundColor3 = Color3.fromRGB(15,15,15)
+end)
+btn.MouseLeave:Connect(function()
+	btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+end)
 
--- INSTANT Button
-local instantButton = Instance.new("TextButton")
-instantButton.Size = UDim2.new(0, 60, 0, 30)
-instantButton.Position = UDim2.new(0, 10, 1, -68)
-instantButton.BackgroundColor3 = Color3.new(0, 0, 0)
-instantButton.BorderSizePixel = 1
-instantButton.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
-instantButton.Text = "INSTANT"
-instantButton.TextColor3 = Color3.new(1, 1, 1)
-instantButton.Font = Enum.Font.GothamBold
-instantButton.TextSize = 14
-instantButton.Parent = frame
+-- Toggle
+local state = false
+btn.MouseButton1Click:Connect(function()
+	state = not state
+	panel.Visible = state
+	btn.Text = state and "ADMIN: ON" or "ADMIN: OFF"
+end)
 
-local instBtnCorner = Instance.new("UICorner")
-instBtnCorner.CornerRadius = UDim.new(0, 8)
-instBtnCorner.Parent = instantButton
+-- DRAGGING SYSTEM
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragInput, dragStart, startPos
 
--- AUTO Button (AnotherBox Trigger)
-local autoButton = Instance.new("TextButton")
-autoButton.Size = UDim2.new(0, 60, 0, 30)
-autoButton.Position = UDim2.new(0.5, -30, 1, -68)
-autoButton.BackgroundColor3 = Color3.new(0, 0, 0)
-autoButton.BorderSizePixel = 1
-autoButton.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
-autoButton.Text = "AUTO"
-autoButton.TextColor3 = Color3.new(1, 1, 1)
-autoButton.Font = Enum.Font.GothamBold
-autoButton.TextSize = 14
-autoButton.Parent = frame
-
-local autoBtnCorner = Instance.new("UICorner")
-autoBtnCorner.CornerRadius = UDim.new(0, 8)
-autoBtnCorner.Parent = autoButton
-
--- TOGGLE SWITCH (Original Auto-Farm via BoxEarning)
-local toggleFrame = Instance.new("Frame")
-toggleFrame.Size = UDim2.new(0, 50, 0, 25)
-toggleFrame.Position = UDim2.new(0, 10, 1, -35)
-toggleFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-toggleFrame.Parent = frame
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 12)
-toggleCorner.Parent = toggleFrame
-
-local toggleButton = Instance.new("Frame")
-toggleButton.Size = UDim2.new(0, 20, 0, 20)
-toggleButton.Position = UDim2.new(0, 3, 0.5, -10)
-toggleButton.BackgroundColor3 = Color3.new(1, 1, 1)
-toggleButton.Parent = toggleFrame
-
-local toggleBtnCorner = Instance.new("UICorner")
-toggleBtnCorner.CornerRadius = UDim.new(0, 10)
-toggleBtnCorner.Parent = toggleButton
-
-local toggleLabel = Instance.new("TextLabel")
-toggleLabel.Size = UDim2.new(0, 80, 0, 25)
-toggleLabel.Position = UDim2.new(0, 65, 1, -35)
-toggleLabel.BackgroundTransparency = 1
-toggleLabel.Text = "BoxEarning"
-toggleLabel.TextColor3 = Color3.new(1, 1, 1)
-toggleLabel.Font = Enum.Font.Gotham
-toggleLabel.TextSize = 14
-toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-toggleLabel.Parent = frame
-
--- DRAGGING
-local dragging = false
-local dragInput, dragStart, startPos
+local function update(input)
+	local delta = input.Position - dragStart
+	frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
 
 frame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
 		dragStart = input.Position
 		startPos = frame.Position
+
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
@@ -148,172 +106,13 @@ frame.InputBegan:Connect(function(input)
 end)
 
 frame.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
 		dragInput = input
 	end
 end)
 
-RunService.RenderStepped:Connect(function()
-	if dragging and dragInput then
-		local delta = dragInput.Position - dragStart
-		frame.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		)
-	end
-end)
-
--- TOGGLE SWITCH: Auto-Fire BoxEarning (every 0.1s)
-local isOn = false
-local toggleConnection
-
-toggleFrame.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		isOn = not isOn
-		if isOn then
-			toggleButton.Position = UDim2.new(1, -23, 0.5, -10)
-			toggleButton.BackgroundColor3 = Color3.new(0, 1, 0)
-			toggleFrame.BackgroundColor3 = Color3.new(0.1, 0.4, 0.1)
-			toggleConnection = RunService.Heartbeat:Connect(function()
-				local args = {[1] = "BoxEarning"}
-				pcall(function()
-					game:GetService("ReplicatedStorage"):WaitForChild("CityJobs", 9e9):WaitForChild("Jobs", 9e9):FireServer(unpack(args))
-				end)
-				task.wait(0.001)
-			end)
-		else
-			toggleButton.Position = UDim2.new(0, 3, 0.5, -10)
-			toggleButton.BackgroundColor3 = Color3.new(1, 1, 1)
-			toggleFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-			if toggleConnection then
-				toggleConnection:Disconnect()
-				toggleConnection = nil
-			end
-		end
-	end
-end)
-
--- AUTO BUTTON: AnotherBox Trigger (0.001s + Infinite Range)
-local autoEnabled = false
-local autoConnection
-local anotherBoxPrompt
-
--- Wait for the prompt (safe)
-task.spawn(function()
-	anotherBoxPrompt = workspace:WaitForChild("Game", 30)
-	if anotherBoxPrompt then
-		anotherBoxPrompt = anotherBoxPrompt:WaitForChild("CityJobs", 30)
-		if anotherBoxPrompt then
-			anotherBoxPrompt = anotherBoxPrompt:WaitForChild("Prompts", 30)
-			if anotherBoxPrompt then
-				anotherBoxPrompt = anotherBoxPrompt:WaitForChild("AnotherBox", 30)
-				if anotherBoxPrompt then
-					anotherBoxPrompt = anotherBoxPrompt:WaitForChild("ProximityPrompt", 30)
-					if anotherBoxPrompt then
-						anotherBoxPrompt.MaxActivationDistance = math.huge
-					end
-				end
-			end
-		end
-	end
-end)
-
-autoButton.MouseButton1Click:Connect(function()
-	autoEnabled = not autoEnabled
-	if autoEnabled then
-		autoButton.BackgroundColor3 = Color3.new(0, 0.7, 0)
-		autoButton.Text = "AUTO ON"
-
-		if not anotherBoxPrompt then
-			warn("AnotherBox prompt not found! Waiting...")
-		end
-
-		autoConnection = task.spawn(function()
-			while autoEnabled do
-				if anotherBoxPrompt then
-					pcall(fireproximityprompt, anotherBoxPrompt)
-				end
-				task.wait(0.001)
-			end
-		end)
-	else
-		autoButton.BackgroundColor3 = Color3.new(0, 0, 0)
-		autoButton.Text = "AUTO"
-		autoEnabled = false
-	end
-end)
-
--- CASH BUTTON
-cashButton.MouseButton1Click:Connect(function()
-	local args = {[1] = "BoxEarning"}
-	pcall(function()
-		game:GetService("ReplicatedStorage"):WaitForChild("CityJobs", 9e9):WaitForChild("Jobs", 9e9):FireServer(unpack(args))
-	end)
-end)
-
--- INSTANT BUTTON LOGIC
-local instantEnabled = false
-local instantConnection
-local inputConnection
-
-instantButton.MouseButton1Click:Connect(function()
-	instantEnabled = not instantEnabled
-	if instantEnabled then
-		instantButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-		instantButton.Text = "INSTANT ON"
-
-		for _, prompt in ipairs(workspace:GetDescendants()) do
-			if prompt:IsA("ProximityPrompt") then
-				prompt.HoldDuration = 0
-			end
-		end
-
-		instantConnection = workspace.DescendantAdded:Connect(function(descendant)
-			if descendant:IsA("ProximityPrompt") then
-				descendant.HoldDuration = 0
-			end
-		end)
-
-		inputConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-			if gameProcessed or input.KeyCode ~= Enum.KeyCode.E then return end
-			local char = player.Character
-			if not char then return end
-			local hrp = char:FindFirstChild("HumanoidRootPart")
-			if not hrp then return end
-			for _, prompt in ipairs(workspace:GetDescendants()) do
-				if prompt:IsA("ProximityPrompt") and prompt.Enabled then
-					local dist = (prompt.Parent.Position - hrp.Position).Magnitude
-					if dist < prompt.MaxActivationDistance then
-						fireproximityprompt(prompt)
-					end
-				end
-			end
-		end)
-	else
-		instantButton.BackgroundColor3 = Color3.new(0, 0, 0)
-		instantButton.Text = "INSTANT"
-
-		for _, prompt in ipairs(workspace:GetDescendants()) do
-			if prompt:IsA("ProximityPrompt") then
-				prompt.HoldDuration = 0.5
-			end
-		end
-
-		if instantConnection then instantConnection:Disconnect() end
-		if inputConnection then inputConnection:Disconnect() end
-		instantConnection = nil
-		inputConnection = nil
-	end
-end)
-
--- UPDATE MONEY LABEL
-spawn(function()
-	repeat task.wait() until player:FindFirstChild("leaderstats")
-	local cash = player.leaderstats:FindFirstChild("Cash") or player.leaderstats:FindFirstChild("Money")
-	if cash then
-		cash.Changed:Connect(function()
-			moneyLabel.Text = "$"..tostring(cash.Value)
-		end)
-		moneyLabel.Text = "$"..tostring(cash.Value)
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
 	end
 end)
