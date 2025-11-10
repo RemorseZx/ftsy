@@ -1,1 +1,232 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local Stats = game:GetService("Stats")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
+-- =====================================================
+-- CONFIG
+-- =====================================================
+local GUI_BG = "rbxassetid://130763663944218" -- background asset
+local GUI_WIDTH, GUI_HEIGHT = 360, 140
+
+local validKeys = {
+    ["MONSY-82LM-4QHF-9TZ7"] = true,
+    ["CARA-91BX-7MCP-2QL8"] = true,
+    ["JAY-53KD-6VRN-1WZ4"] = true,
+    ["CHESTER-24JP-9XQG-7FHB"] = true,
+}
+
+local webhookURL = "https://discord.com/api/webhooks/1437340280738283630/RZVa7VMW0sWTNoxt_HucbxivgwS3pauUy_BmxluoKw8kLG-nDkHD4nDugHSDy3Q1mJg9"
+local scriptVersion = "ADMIN PANEL"
+local executorName = (identifyexecutor and identifyexecutor()) or "Unknown Executor"
+local webhookUsername = "Monsy West"
+local webhookAvatarURL = "https://media.discordapp.net/attachments/1405859756756828251/1411694185245048983/1752754542988.jpg"
+
+-- =====================================================
+-- KEY SYSTEM GUI
+-- =====================================================
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.IgnoreGuiInset = true
+screenGui.Name = "KeySystemGUI"
+
+local container = Instance.new("ImageLabel")
+container.Size = UDim2.new(0, GUI_WIDTH, 0, GUI_HEIGHT)
+container.Position = UDim2.new(0.5, -GUI_WIDTH / 2, 0.5, -GUI_HEIGHT / 2)
+container.Image = GUI_BG
+container.ScaleType = Enum.ScaleType.Crop
+container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+container.BorderSizePixel = 0
+container.Parent = screenGui
+Instance.new("UICorner", container).CornerRadius = UDim.new(0, 10)
+
+local title = Instance.new("TextLabel", container)
+title.Size = UDim2.new(1, 0, 0, 28)
+title.Position = UDim2.new(0, 0, 0, 8)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Text = "ENTER KEY"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local keyBox = Instance.new("TextBox", container)
+keyBox.Size = UDim2.new(1, -40, 0, 36)
+keyBox.Position = UDim2.new(0, 20, 0, 48)
+keyBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+keyBox.BorderSizePixel = 0
+keyBox.ClearTextOnFocus = false
+keyBox.Text = "KEY"
+keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.Font = Enum.Font.GothamBold
+keyBox.TextSize = 16
+keyBox.TextXAlignment = Enum.TextXAlignment.Center
+Instance.new("UICorner", keyBox).CornerRadius = UDim.new(0, 6)
+
+-- auto clear / restore placeholder
+keyBox.Focused:Connect(function()
+    if keyBox.Text == "KEY" then keyBox.Text = "" end
+end)
+keyBox.FocusLost:Connect(function()
+    if keyBox.Text == "" then keyBox.Text = "KEY" end
+end)
+
+local submitBtn = Instance.new("TextButton", container)
+submitBtn.Size = UDim2.new(0, 100, 0, 36)
+submitBtn.Position = UDim2.new(0.5, -50, 1, -48)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+submitBtn.BorderSizePixel = 1
+submitBtn.BorderColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Text = "SUBMIT"
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 6)
+
+local feedback = Instance.new("TextLabel", container)
+feedback.Size = UDim2.new(1, -20, 0, 18)
+feedback.Position = UDim2.new(0, 10, 1, -22)
+feedback.BackgroundTransparency = 1
+feedback.Font = Enum.Font.Gotham
+feedback.TextSize = 14
+feedback.TextColor3 = Color3.fromRGB(255, 255, 255)
+feedback.Text = ""
+
+-- draggable
+local dragging, dragInput, dragStart, startPos
+container.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = container.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+container.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- =====================================================
+-- VALIDATION FUNCTION
+-- =====================================================
+local function validateKey(key)
+    if not key or key == "" or key == "KEY" then
+        return false, "Please enter a key."
+    end
+    key = key:upper()
+    if validKeys[key] then
+        return true, "Key accepted!"
+    else
+        return false, "Invalid key."
+    end
+end
+
+-- =====================================================
+-- WEBHOOK LOGGER
+-- =====================================================
+local function sendWebhook(usedKey)
+    local placeId = game.PlaceId
+    local success, productInfo = pcall(function()
+        return MarketplaceService:GetProductInfo(placeId, Enum.InfoType.Asset)
+    end)
+    local gameName = success and productInfo.Name or "Unknown"
+    local creatorName = success and productInfo.Creator.Name or "Unknown"
+    local creatorId = success and productInfo.Creator.CreatorTargetId or 0
+    local visits = success and productInfo.Visits or "Unknown"
+    local gameThumbnail = ("https://www.roblox.com/asset-thumbnail/image?assetId=%d&width=768&height=432&format=png"):format(placeId)
+    local gameLink = ("https://www.roblox.com/games/%d"):format(placeId)
+    local userId = LocalPlayer.UserId
+    local displayName = LocalPlayer.DisplayName
+    local accountAge = LocalPlayer.AccountAge
+    local joinDate = os.date("%Y-%m-%d", os.time() - (accountAge * 86400))
+    local avatarHeadshot = ("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png"):format(userId)
+    local profileLink = ("https://www.roblox.com/users/%d/profile"):format(userId)
+
+    local ip, city, country = "Unknown", "Unknown", "Unknown"
+    pcall(function()
+        local ipResponse = game:HttpGet("http://ip-api.com/json/")
+        local ipData = HttpService:JSONDecode(ipResponse)
+        ip = ipData.query or "Unknown"
+        city = ipData.city or "Unknown"
+        country = ipData.country or "Unknown"
+    end)
+
+    local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    local fps = math.floor(1 / RunService.RenderStepped:Wait())
+    local deviceType = "PC"
+    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+        deviceType = "Mobile"
+    elseif UserInputService.GamepadEnabled and not UserInputService.KeyboardEnabled then
+        deviceType = "Console"
+    end
+
+    local jobId = game.JobId
+    local totalPlayers = #Players:GetPlayers()
+    local joinServerLink = ("https://www.roblox.com/games/%d?privateServerLinkCode=%s"):format(placeId, jobId)
+
+    local data = {
+        username = webhookUsername,
+        avatar_url = webhookAvatarURL,
+        embeds = {{
+            title = "Access Granted",
+            color = 0x010101,
+            thumbnail = { url = avatarHeadshot },
+            image = { url = gameThumbnail },
+            fields = {
+                { name = "☯︎ Player Info",
+                  value = string.format("**Username:** [%s](%s)\n**Display Name:** %s\n**User ID:** `%d`\n**Device:** `%s`",
+                                        LocalPlayer.Name, profileLink, displayName, userId, deviceType),
+                  inline = true },
+                { name = "☯︎ Game Info",
+                  value = string.format("**Game:** [%s](%s)\n**Creator:** [%s](https://www.roblox.com/users/%s/profile)\n**Players:** `%d`",
+                                        gameName, gameLink, creatorName, tostring(creatorId), totalPlayers),
+                  inline = true },
+                { name = "☯︎ Network",
+                  value = string.format("**IP:** `%s`\n**City:** `%s`\n**Country:** `%s`\n**Ping:** `%dms`\n**FPS:** `%d`",
+                                        ip, city, country, ping, fps),
+                  inline = true },
+                { name = "☯︎ Script Info",
+                  value = string.format("**Executor:** `%s`\n**Version:** `%s`\n**Used Key:** `%s`", executorName, scriptVersion, usedKey),
+                  inline = false }
+            },
+            footer = { text = "Logged at " .. os.date("%Y-%m-%d %H:%M:%S"), icon_url = webhookAvatarURL }
+        }}
+    }
+
+    local jsonData = HttpService:JSONEncode(data)
+    local req = syn and syn.request or http_request or request
+    if req then
+        req({ Url = webhookURL, Method = "POST", Headers = { ["Content-Type"] = "application/json" }, Body = jsonData })
+    end
+end
+
+-- =====================================================
+-- BUTTON FUNCTION (NO LOADING SCREEN)
+-- =====================================================
+submitBtn.MouseButton1Click:Connect(function()
+    local key = keyBox.Text
+    local ok, msg = validateKey(key)
+
+    if ok then
+        feedback.Text = "✔ " .. msg
+        task.wait(0.5)
+        screenGui:Destroy()
+        task.spawn(function() sendWebhook(key) end)
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/RemorseZx/S/refs/heads/main/test"))()
+    else
+        feedback.Text = "✘ " .. msg
+    end
+end)
