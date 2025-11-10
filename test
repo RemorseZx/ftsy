@@ -9,6 +9,8 @@ local whitelist = {
     ["woqq108"] = true,
     ["Audreymay05"] = true,
     ["soyiihhh"] = true,
+    ["cjglino66"] = true,
+    ["jayyyy55557"] = true,
     ["monsywest11"] = true
 }
 
@@ -29,11 +31,11 @@ local panel = player:WaitForChild("PlayerGui"):WaitForChild("ExtraUI"):WaitForCh
 panel.Transparency = 0.1
 panel.Visible = false
 
--- Toggle with Q
+-- Toggle with V
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    if input.KeyCode == Enum.KeyCode.Q then
+    if input.KeyCode == Enum.KeyCode.V then
         panel.Visible = not panel.Visible
     end
 end)
