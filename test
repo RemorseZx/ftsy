@@ -4,6 +4,11 @@ local whitelist = {
     ["DarkRPUser"] = true,
     ["tanginanyonglahat87"] = true,
     ["kenshin_121123343"] = true,
+    ["Defntaudri"] = true,
+    ["GodSake01"] = true,
+    ["woqq108"] = true,
+    ["Audreymay05"] = true,
+    ["Defntaudri"] = true,
     ["monsywest11"] = true
 }
 
